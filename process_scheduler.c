@@ -83,6 +83,32 @@ void log_process_queues() {                 // Function to log the current state
     printf("%s\n", log_message);                           // Print the log message to the console.
 }
 
+int check_resources(int priority, int required_ram, int required_cpu) {         // Function to check if resources are available for a process.
+    if (priority == 0) {                                                        // Check if the process has priority 0.
+        return (required_ram <= available_ram_priority_0 && required_cpu <= available_cpu);    // Return true if both RAM and CPU requirements can be met for priority 0.
+    } else {                                                                                   // For processes with other priorities.
+        return (required_ram <= available_ram_other && required_cpu <= available_cpu);         // Return true if both RAM and CPU requirements can be met for non-priority 0.
+    }
+}
+
+void allocate_resources(int priority, int required_ram, int required_cpu) {      // Function to allocate resources to a process.
+    if (priority == 0) {                                                         // Check if the process has priority 0.
+        available_ram_priority_0 -= required_ram;          // Deduct the required RAM from the available RAM for priority 0.
+    } else {                                               // For processes with other priorities.
+        available_ram_other -= required_ram;               // Deduct the required RAM from the available RAM for non-priority 0.
+    }
+    available_cpu -= required_cpu;                         // Deduct the required CPU from the available CPU.
+}
+
+void release_resources(int priority, int released_ram, int released_cpu) {       // Function to release resources back to the pool after a process finishes.
+    if (priority == 0) {                                 // Check if the process has priority 0.
+        available_ram_priority_0 += released_ram;        // Add the released RAM back to the available RAM for priority 0.
+    } else {                                             // For processes with other priorities.
+        available_ram_other += released_ram;             // Add the released RAM back to the available RAM for non-priority 0.
+    }
+    available_cpu += released_cpu;                       // Add the released CPU back to the available CPU.
+}
+
 
 int main() {
 
