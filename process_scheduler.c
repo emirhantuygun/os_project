@@ -29,6 +29,59 @@ int available_ram_priority_0 = RESERVED_RAM_FOR_PRIORITY_0;            // RAM av
 int available_ram_other = TOTAL_RAM - RESERVED_RAM_FOR_PRIORITY_0;     // RAM available for other priority processes.
 int available_cpu = CPU_LIMIT;                            // Available CPU capacity.
 
+void log_to_file(const char* message) {             // Function to log a message to a file.
+    FILE* file = fopen("output.txt", "a");          // Open the output file in append mode.
+    if (!file) {                                    // Check if the file was opened successfully.
+        perror("Could not open output file");       // Print error message if the file could not be opened.
+        exit(EXIT_FAILURE);                         // Exit the program with failure status.
+    }
+    fprintf(file, "%s\n", message);           // Write the message to the file, followed by a newline.
+    fclose(file);                             // Close the output file.
+}
+
+void log_process_queues() {                 // Function to log the current state of process queues.
+    char log_message[MAX_LINE_LENGTH];      // Buffer to store the log message.
+
+    strcpy(log_message, "CPU-1 que1 (priority-0) (FCFS) → ");       // Initialize the log message for priority 0 processes.
+    for (int i = 0; i < process_count; i++) {                       // Loop through all processes.
+        if (processes[i].priority == 0) {                           // Check if the process has priority 0.
+            strcat(log_message, processes[i].id);                   // Append the process ID to the log message.
+            strcat(log_message, "-");                               // Append a dash to separate process IDs.
+        }
+    }
+    log_message[strlen(log_message) - 1] = '\0';          // Remove the last dash by setting it to the null character.
+    printf("%s\n", log_message);                          // Print the log message to the console.
+
+    strcpy(log_message, "CPU-2 que2 (priority-1) (SJF) → ");      // Initialize the log message for priority 1 processes.
+    for (int i = 0; i < process_count; i++) {                     // Loop through all processes.
+        if (processes[i].priority == 1) {                         // Check if the process has priority 1.
+            strcat(log_message, processes[i].id);                 // Append the process ID to the log message.
+            strcat(log_message, "-");                             // Append a dash to separate process IDs.
+        }
+    }
+    log_message[strlen(log_message) - 1] = '\0';           // Remove the last dash by setting it to the null character.
+    printf("%s\n", log_message);                           // Print the log message to the console.
+
+    strcpy(log_message, "CPU-2 que3 (priority-2) (RR-q8) → ");       // Initialize the log message for priority 2 processes.
+    for (int i = 0; i < process_count; i++) {                        // Loop through all processes.
+        if (processes[i].priority == 2) {                            // Check if the process has priority 2.
+            strcat(log_message, processes[i].id);                    // Append the process ID to the log message.
+            strcat(log_message, "-");                                // Append a dash to separate process IDs.
+        }
+    }
+    log_message[strlen(log_message) - 1] = '\0';          // Remove the last dash by setting it to the null character.
+    printf("%s\n", log_message);                          // Print the log message to the console.
+
+    strcpy(log_message, "CPU-2 que4 (priority-3) (RR-q16) → ");         // Initialize the log message for priority 3 processes.
+    for (int i = 0; i < process_count; i++) {                           // Loop through all processes.
+        if (processes[i].priority == 3) {                               // Check if the process has priority 3.
+            strcat(log_message, processes[i].id);                       // Append the process ID to the log message.
+            strcat(log_message, "-");                                   // Append a dash to separate process IDs.
+        }
+    }
+    log_message[strlen(log_message) - 1] = '\0';           // Remove the last dash by setting it to the null character.
+    printf("%s\n", log_message);                           // Print the log message to the console.
+}
 
 
 int main() {
