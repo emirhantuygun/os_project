@@ -109,6 +109,50 @@ void release_resources(int priority, int released_ram, int released_cpu) {      
     available_cpu += released_cpu;                       // Add the released CPU back to the available CPU.
 }
 
+void fcfs(Process* queue, int count) {            // Function to handle processes using the First-Come, First-Served (FCFS) scheduling algorithm.
+    for (int i = 0; i < count; i++) {             // Iterate over each process in the queue.
+        char log_message[MAX_LINE_LENGTH];        // Buffer for log messages.
+
+        if (!check_resources(queue[i].priority, queue[i].ram, queue[i].cpu)) {      // Check if there are sufficient resources for the current process.
+            snprintf(log_message, sizeof(log_message), "Process %s cannot be assigned to CPU-1 due to insufficient resources.", queue[i].id);  // Prepare a log message indicating insufficient resources.
+            log_to_file(log_message);             // Log the message to the output file.
+            printf("%s\n", log_message);          // Print the log message to the console.
+            continue;                             // Skip to the next process.
+        }
+
+        snprintf(log_message, sizeof(log_message), "Process %s is queued to be assigned to CPU-1.", queue[i].id);  // Prepare a log message indicating the process is queued.
+        log_to_file(log_message);        // Log the message to the output file.
+        printf("%s\n", log_message);     // Print the log message to the console.
+
+        allocate_resources(queue[i].priority, queue[i].ram, queue[i].cpu);  // Allocate resources for the current process.
+
+        snprintf(log_message, sizeof(log_message), "Process %s is assigned to CPU-1.", queue[i].id);  // Prepare a log message indicating the process is assigned to CPU-1.
+        log_to_file(log_message);        // Log the message to the output file.
+        printf("%s\n", log_message);     // Print the log message to the console.
+
+        snprintf(log_message, sizeof(log_message), "Process %s is completed and terminated.", queue[i].id);  // Prepare a log message indicating the process is completed and terminated.
+        log_to_file(log_message);         // Log the message to the output file.
+        printf("%s\n", log_message);      // Print the log message to the console.
+
+        release_resources(queue[i].priority, queue[i].ram, queue[i].cpu);  // Release resources used by the current process.
+    }
+}
+
+Process* sort_by_burst_time(Process* queue, int count) {             // Function to sort processes by their burst time using bubble sort.
+    Process* sorted = (Process*)malloc(count * sizeof(Process));     // Allocate memory for the sorted array of processes.
+    memcpy(sorted, queue, count * sizeof(Process));          // Copy the original queue into the sorted array.
+    for (int i = 0; i < count - 1; i++) {                    // Outer loop for bubble sort, iterates over the entire array.
+        for (int j = 0; j < count - i - 1; j++) {            // Inner loop for bubble sort, performs the comparison and swapping.
+            if (sorted[j].burst_time > sorted[j + 1].burst_time) {       // Compare the burst times of adjacent processes.
+                Process temp = sorted[j];         // Temporary variable to hold one process during the swap.
+                sorted[j] = sorted[j + 1];        // Swap the processes if the current one has a greater burst time.
+                sorted[j + 1] = temp;             // Complete the swap.
+            }
+        }
+    }
+    return sorted;  // Return the sorted array.
+}
+
 
 int main() {
 
