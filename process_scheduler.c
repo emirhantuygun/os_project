@@ -265,5 +265,32 @@ void round_robin(Process* queue, int count, int quantum) {
 }
 
 int main() {
+    read_processes("input.txt");           // Read the processes from the input file.
 
+    Process que1[MAX_PROCESSES], que2[MAX_PROCESSES], que3[MAX_PROCESSES], que4[MAX_PROCESSES];  // Create queues for each priority level.
+    int count1 = 0, count2 = 0, count3 = 0, count4 = 0;       // Initialize counts for each queue.
+
+    for (int i = 0; i < process_count; i++) {        // Iterate over all processes.
+        switch (processes[i].priority) {             // Switch based on the priority of each process.
+            case 0: que1[count1++] = processes[i]; break;      // Add process to que1 if priority is 0.
+            case 1: que2[count2++] = processes[i]; break;      // Add process to que2 if priority is 1.
+            case 2: que3[count3++] = processes[i]; break;      // Add process to que3 if priority is 2.
+            case 3: que4[count4++] = processes[i]; break;      // Add process to que4 if priority is 3.
+        }
+    }
+
+    printf("----------------------------- OUTPUT ---------------------------\n"); 
+
+    fcfs(que1, count1);                // Execute FCFS scheduling for que1.
+    sjf(que2, count2);                 // Execute SJF scheduling for que2.
+    round_robin(que3, count3, 8);      // Execute round robin scheduling for que3 with quantum 8.
+    round_robin(que4, count4, 16);     // Execute round robin scheduling for que4 with quantum 16.
+
+    printf("----------------------------------------------------------------\n");  
+
+    log_process_queues();         // Log the process queues.
+
+    printf("----------------------------------------------------------------\n");  
+
+    return 0;           // Return 0 to indicate successful execution.
 }
