@@ -31,7 +31,10 @@ int available_cpu = CPU_LIMIT;                            // Available CPU capac
 
 void read_processes(const char* filename) {         // Function to read processes from a file.
     FILE* file = fopen(filename, "r");              // Open the input file in read mode.
-
+    if (!file) {                                    // Check if the file was opened successfully.
+        perror("Could not open input file");        // Print error message if the file could not be opened.
+        exit(EXIT_FAILURE);                         // Exit the program with failure status.
+    }
 
     char line[MAX_LINE_LENGTH];                       // Buffer to store each line read from the file.
     while (fgets(line, sizeof(line), file)) {         // Read each line from the file.
