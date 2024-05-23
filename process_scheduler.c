@@ -29,6 +29,23 @@ int available_ram_priority_0 = RESERVED_RAM_FOR_PRIORITY_0;            // RAM av
 int available_ram_other = TOTAL_RAM - RESERVED_RAM_FOR_PRIORITY_0;     // RAM available for other priority processes.
 int available_cpu = CPU_LIMIT;                            // Available CPU capacity.
 
+void read_processes(const char* filename) {         // Function to read processes from a file.
+    FILE* file = fopen(filename, "r");              // Open the input file in read mode.
+    if (!file) {                                    // Check if the file was opened successfully.
+        perror("Could not open input file");        // Print error message if the file could not be opened.
+        exit(EXIT_FAILURE);                         // Exit the program with failure status.
+    }
+
+    char line[MAX_LINE_LENGTH];                       // Buffer to store each line read from the file.
+    while (fgets(line, sizeof(line), file)) {         // Read each line from the file.
+        Process p;                                    // Create a temporary Process variable to hold the data.
+        sscanf(line, "%[^,],%d,%d,%d,%d,%d", p.id, &p.arrival_time, &p.priority, &p.burst_time, &p.ram, &p.cpu);    // Parse the line and store the values in the Process variable.
+        processes[process_count++] = p;               // Add the Process to the array and increment the process count.
+    }
+
+    fclose(file);            // Close the input file.
+}
+
 void log_to_file(const char* message) {             // Function to log a message to a file.
     FILE* file = fopen("output.txt", "a");          // Open the output file in append mode.
     if (!file) {                                    // Check if the file was opened successfully.
@@ -153,6 +170,38 @@ Process* sort_by_burst_time(Process* queue, int count) {             // Function
     return sorted;  // Return the sorted array.
 }
 
+void sjf(Process* queue, int count) {
+    Process* sorted_queue = sort_by_burst_time(queue, count);         // Sort the queue by burst time using the sort_by_burst_time function.
+
+    for (int i = 0; i < count; i++) {                // Iterate over each process in the sorted queue.
+        char log_message[MAX_LINE_LENGTH];           // Buffer for creating log messages.
+
+        if (!check_resources(sorted_queue[i].priority, sorted_queue[i].ram, sorted_queue[i].cpu)) {  // Check if there are enough resources for the current process.
+            snprintf(log_message, sizeof(log_message), "Process %s cannot be assigned to CPU-2 due to insufficient resources.", sorted_queue[i].id);  // Create a log message if resources are insufficient.
+            log_to_file(log_message);              // Log the message to a file.
+            printf("%s\n", log_message);           // Print the message to the console.
+            continue;             // Skip to the next process if resources are insufficient.
+        }
+
+        snprintf(log_message, sizeof(log_message), "Process %s is placed in the que1 queue to be assigned to CPU-2.", sorted_queue[i].id);  // Log message for placing the process in the queue.
+        log_to_file(log_message);             // Log the message to a file.
+        printf("%s\n", log_message);          // Print the message to the console.
+
+        allocate_resources(sorted_queue[i].priority, sorted_queue[i].ram, sorted_queue[i].cpu);  // Allocate the necessary resources for the process.
+
+        snprintf(log_message, sizeof(log_message), "Process %s is assigned to CPU-2.", sorted_queue[i].id);  // Log message for assigning the process to CPU-2.
+        log_to_file(log_message);         // Log the message to a file.
+        printf("%s\n", log_message);      // Print the message to the console.
+
+        snprintf(log_message, sizeof(log_message), "The operation of process %s is completed and terminated.", sorted_queue[i].id);  // Log message for process completion and termination.
+        log_to_file(log_message);         // Log the message to a file.
+        printf("%s\n", log_message);      // Print the message to the console.
+
+        release_resources(sorted_queue[i].priority, sorted_queue[i].ram, sorted_queue[i].cpu);  // Release the resources used by the process.
+    }
+    free(sorted_queue);       // Free the memory allocated for the sorted queue.
+}
+
 void round_robin(Process* queue, int count, int quantum) {
     int* remaining_burst_time = (int*)malloc(count * sizeof(int));     // Allocate memory for an array to store remaining burst times for each process.
     for (int i = 0; i < count; i++) {
@@ -216,5 +265,32 @@ void round_robin(Process* queue, int count, int quantum) {
 }
 
 int main() {
+    read_processes("input.txt");           // Read the processes from the input file.
 
+    Process que1[MAX_PROCESSES], que2[MAX_PROCESSES], que3[MAX_PROCESSES], que4[MAX_PROCESSES];  // Create queues for each priority level.
+    int count1 = 0, count2 = 0, count3 = 0, count4 = 0;       // Initialize counts for each queue.
+
+    for (int i = 0; i < process_count; i++) {        // Iterate over all processes.
+        switch (processes[i].priority) {             // Switch based on the priority of each process.
+            case 0: que1[count1++] = processes[i]; break;      // Add process to que1 if priority is 0.
+            case 1: que2[count2++] = processes[i]; break;      // Add process to que2 if priority is 1.
+            case 2: que3[count3++] = processes[i]; break;      // Add process to que3 if priority is 2.
+            case 3: que4[count4++] = processes[i]; break;      // Add process to que4 if priority is 3.
+        }
+    }
+
+    printf("----------------------------- OUTPUT ---------------------------\n"); 
+
+    fcfs(que1, count1);                // Execute FCFS scheduling for que1.
+    sjf(que2, count2);                 // Execute SJF scheduling for que2.
+    round_robin(que3, count3, 8);      // Execute round robin scheduling for que3 with quantum 8.
+    round_robin(que4, count4, 16);     // Execute round robin scheduling for que4 with quantum 16.
+
+    printf("----------------------------------------------------------------\n");  
+
+    log_process_queues();         // Log the process queues.
+
+    printf("----------------------------------------------------------------\n");  
+
+    return 0;           // Return 0 to indicate successful execution.
 }
