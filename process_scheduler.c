@@ -29,6 +29,20 @@ int available_ram_priority_0 = RESERVED_RAM_FOR_PRIORITY_0;            // RAM av
 int available_ram_other = TOTAL_RAM - RESERVED_RAM_FOR_PRIORITY_0;     // RAM available for other priority processes.
 int available_cpu = CPU_LIMIT;                            // Available CPU capacity.
 
+void read_processes(const char* filename) {         // Function to read processes from a file.
+    FILE* file = fopen(filename, "r");              // Open the input file in read mode.
+
+
+    char line[MAX_LINE_LENGTH];                       // Buffer to store each line read from the file.
+    while (fgets(line, sizeof(line), file)) {         // Read each line from the file.
+        Process p;                                    // Create a temporary Process variable to hold the data.
+        sscanf(line, "%[^,],%d,%d,%d,%d,%d", p.id, &p.arrival_time, &p.priority, &p.burst_time, &p.ram, &p.cpu);    // Parse the line and store the values in the Process variable.
+        processes[process_count++] = p;               // Add the Process to the array and increment the process count.
+    }
+
+    fclose(file);            // Close the input file.
+}
+
 void log_to_file(const char* message) {             // Function to log a message to a file.
     FILE* file = fopen("output.txt", "a");          // Open the output file in append mode.
     if (!file) {                                    // Check if the file was opened successfully.
